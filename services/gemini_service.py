@@ -1,10 +1,11 @@
 import json
 import re
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from config import settings
 from schemas import AnalyzeResponse, SkillCategory, FitScore, AtsScore, Suggestion
 
-genai.configure(api_key=settings.gemini_api_key)
+client = genai.Client(api_key=settings.gemini_api_key)
 
 ANALYSIS_PROMPT = """You are an expert technical recruiter and career coach.
 Analyze the resume text below and return ONLY a valid JSON object — no markdown fences, no explanation.
@@ -83,10 +84,10 @@ async def analyze_resume(resume_text: str, job_description: str | None) -> Analy
         fit_score_instruction=fit_instruction,
     )
 
-    model = genai.GenerativeModel(settings.gemini_model)
-    response = model.generate_content(
-        prompt,
-        generation_config=genai.GenerationConfig(
+    response = client.models.generate_content(
+        model=settings.gemini_model,
+        contents=prompt,
+        config=types.GenerateContentConfig(
             temperature=0.2,
             response_mime_type="application/json",
         ),
